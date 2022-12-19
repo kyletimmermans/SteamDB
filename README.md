@@ -7,3 +7,5 @@
 
 
 # <div align="center">SteamDB</div>
+
+SteamDB is a platform for buying, trading, rating, and selling different video games. There is functionality for adding friends and keeping tracking of what games they have. Once friending another user, you can trade and sell games with / to them. The point of this project is to better understand SQL, specifically PostgreSQL.
