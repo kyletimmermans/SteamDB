@@ -271,7 +271,6 @@ with col5:
                     if issue != 1 and issue_two != 1 and issue_three != 1:
                         st.success("Successfully traded selected game with friend!", icon="✅")
 
-
                 elif action == "Rate":
                     try:
                         insert_db(f"INSERT INTO rate (score, rating_user, rated_game) VALUES ({int(score)}, {global_uid}, {gid});")
