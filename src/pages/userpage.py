@@ -1,7 +1,5 @@
-'''
-Kyle Timmermans
-userpage.py
-'''
+# pages/userpage.py
+
 
 import os
 import time

@@ -1,7 +1,4 @@
-'''
-Kyle Timmermans
-login.py
-'''
+# login.py (entrypoint)
 
 
 import time

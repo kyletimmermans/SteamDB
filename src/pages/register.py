@@ -1,7 +1,4 @@
-'''
-Kyle Timmermans
-register.py
-'''
+# pages/register.py
 
 import os 
 import psycopg2
