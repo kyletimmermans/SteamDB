@@ -6,6 +6,6 @@
 [![kyletimmermans Twitter](http://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Follow)](https://twitter.com/kyletimmermans)
 
 
-# <div align="center">SteamDB</div>
+# <p align="center"><img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/title.png"/></p>
 
 SteamDB is a platform for buying, trading, rating, and selling different video games. There is functionality for adding friends and keeping tracking of what games they have. Once friending another user, you can trade and sell games with / to them. The point of this project is to better understand SQL, specifically PostgreSQL.
