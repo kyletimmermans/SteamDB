@@ -11,8 +11,15 @@ from configparser import ConfigParser
 from streamlit.components.v1 import html
 
 
+# Set username and uid for future use
+# User would only see front end and would not be able to create a temp.txt
+# unless they had access to the backend
+f = open("temp.txt", "r")
+username = f.read()
+st.set_page_config(page_title=f"Home | {username}", page_icon="assets/favicon.ico", initial_sidebar_state="collapsed", layout="wide")
+
+
 # Connect to db (from demo.py)
-@st.cache
 def get_config(filename="database.ini", section="postgresql"):
     parser = ConfigParser()
     parser.read(filename)
@@ -20,7 +27,6 @@ def get_config(filename="database.ini", section="postgresql"):
 
 
 # Query db (from demo.py)
-@st.cache
 def query_db(sql: str):
     db_info = get_config()
     conn = psycopg2.connect(**db_info)
@@ -36,7 +42,6 @@ def query_db(sql: str):
 
 
 # Insert into db
-@st.cache
 def insert_db(sql: str):
     db_info = get_config()
     conn = psycopg2.connect(**db_info)
@@ -45,14 +50,6 @@ def insert_db(sql: str):
     conn.commit()
     cur.close()
     conn.close()
-
-
-# Set username and uid for future use
-# User would only see front end and would not be able to create a temp.txt
-# unless they had access to the backend
-f = open("temp.txt", "r")
-username = f.read()
-global_uid = int(query_db(f"SELECT uid FROM users WHERE username = '{username}';")["uid"].tolist()[0])
 
 
 # For changing pages, no built-in option in Streamlit
@@ -111,8 +108,34 @@ def set_friend_list_df(usr):
 
     return final_data
 
-st.set_page_config(page_title=f"Home | {username}", page_icon="../assets/favicon.ico", initial_sidebar_state="collapsed", layout="wide")
-logo = Image.open('../assets/SteamDB.png')
+
+def get_inventory(global_id):
+    user_inv = query_db(f"SELECT G.name, GC.name, G.genre FROM user_inventory UI "
+                        f"JOIN games G ON G.gid = UI.game_id "
+                        f"JOIN game_dev_companies GC ON GC.cid = G.game_dev_company "
+                        f"WHERE UI.owner_id = {global_id};")
+    user_inv = user_inv.values.tolist()
+    final_data = pd.DataFrame(columns=["Game", "Publisher", "Genre"])
+    for i in range(len(user_inv)):
+        final_data.loc[i] = [str(user_inv[i][0]), str(user_inv[i][1]), str(user_inv[i][2])]
+    return final_data
+
+
+def get_friends(usr):
+    friends = query_db(f"SELECT username FROM users "
+                   f"WHERE username IN "
+                   f"(SELECT sender_username FROM users_friend "
+                   f"WHERE receiver_username = '{usr}' "
+                   f"UNION "
+                   f"SELECT receiver_username FROM users_friend "
+                   f"WHERE sender_username = '{usr}') "
+                   f"ORDER BY username;")
+    return friends
+
+
+
+global_uid = int(query_db(f"SELECT uid FROM users WHERE username = '{username}';")["uid"].tolist()[0])
+logo = Image.open('assets/SteamDB.png')
 col4, col5, col6 = st.columns(3, gap='large')
 # Refresh Button, Friends List, Send Friend Request
 with col4:
@@ -207,82 +230,92 @@ with col5:
     st.image(logo)
     st.markdown(f"<h1 style='text-align: center;'>Hello, {username}!</h1>", unsafe_allow_html=True)
     st.write("")
-    st.markdown(f"<h1 style='text-align: center;'>Inventory</h1>", unsafe_allow_html=True)
 
+    st.markdown(f"<h3 style='text-align: center;'>Inventory</h3>", unsafe_allow_html=True)
     with st.form("inventory"):
-        user_inv = query_db(f"SELECT G.name, GC.name, G.genre FROM user_inventory UI "
-                            f"JOIN games G ON G.gid = UI.game_id "
-                            f"JOIN game_dev_companies GC ON GC.cid = G.game_dev_company "
-                            f"WHERE UI.owner_id = {global_uid};")
-        user_inv = user_inv.values.tolist()
-        final_data = pd.DataFrame(columns=["Game", "Publisher", "Genre"])
-
-        for i in range(len(user_inv)):
-            final_data.loc[i] = [str(user_inv[i][0]), str(user_inv[i][1]), str(user_inv[i][2])]
-
+        final_data = get_inventory(global_uid)
         st.table(final_data)
+        refresh = st.form_submit_button("Refresh Inventory")
+        if refresh:
+            pass
 
-        game_options = st.selectbox("Select one of your games", final_data)
-        action = st.selectbox("Chose an action for selected game", ["Trade", "Rate", "Sell"])
-        friends = query_db(f"SELECT username FROM users "
-                           f"WHERE username IN "
-                           f"(SELECT sender_username FROM users_friend "
-                           f"WHERE receiver_username = '{username}' "
-                           f"UNION "
-                           f"SELECT receiver_username FROM users_friend "
-                           f"WHERE sender_username = '{username}') "
-                           f"ORDER BY username;")
-        friends_options = st.selectbox("Chose a friend to trade with or sell to", friends["username"].tolist())
+    st.markdown(f"<h3 style='text-align: center;'>Trade</h3>", unsafe_allow_html=True)
+    with st.form("trade"):
+        game_options = st.selectbox("Select one of your games", get_inventory(global_uid))
+        friends_options = st.selectbox("Chose a friend to trade with", get_friends(username)["username"].tolist())
         friends_game = st.text_input("Type the game you would like to trade for (Case-sensitive)")
-        score = st.slider("Rating score", min_value=1, max_value=5, value=1)
-        submit = st.form_submit_button("Submit")
+        submit = st.form_submit_button("Trade")
         if submit:
-            is_game = 1
+            is_game = True
             fid = int(query_db(f"SELECT uid FROM users WHERE username = '{friends_options}';")["uid"].tolist()[0])
             try:
                 gid = int(query_db(f"SELECT gid FROM games WHERE name = '{game_options}';")["gid"].tolist()[0])
             except IndexError: 
-                is_game = 0
-                st.warning("You have no games to Trade, Rate, or Sell")
-            if is_game == 1:
-                if action == "Trade":
-                    issue, issue_two, issue_three = 0, 0, 0
-                    if friends_game == "":
-                        st.warning("You must supply the game you would like to trade for")
-                        issue = 1
-                    if issue != 1:
+                is_game = False
+                st.warning("You have no games to trade")
+            if is_game is not False:
+                issue, issue_two, issue_three = False, False, False
+                if friends_game == "":
+                    st.warning("You must supply the game you would like to trade for")
+                    issue = True
+                if issue is not True:
+                    try:
+                        friends_gid = int(query_db(f"SELECT gid FROM games WHERE name = '{friends_game}';")["gid"].tolist()[0])
+                    except:
+                        st.error("Could not find game in friend's inventory, game names are case sensitive")
+                        issue_two = True
+                    if issue_two is not True:
                         try:
-                            friends_gid = int(query_db(f"SELECT gid FROM games WHERE name = '{friends_game}';")["gid"].tolist()[0])
-                        except:
-                            st.error("Could not find game in friend's inventory, game names are case sensitive")
-                            issue_two = 1
-                        if issue_two != 1:
-                            try:
-                                insert_db(f"DELETE FROM user_inventory WHERE owner_id = {global_uid} AND game_id = {gid};")
-                                insert_db(f"DELETE FROM user_inventory WHERE owner_id = {fid} AND game_id = {friends_gid};")
-                                insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({global_uid}, {friends_gid}, '{friends_game}');")
-                                insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({fid}, {gid}, '{game_options}');")
-                            except psycopg2.errors.UniqueViolation:
-                                st.error("Cannot complete trade as either you or the tradee would duplicate "
-                                         "a game you/they already own")
-                                issue_three = 1
-                    if issue != 1 and issue_two != 1 and issue_three != 1:
-                        st.success("Successfully traded selected game with friend!", icon="✅")
+                            insert_db(f"DELETE FROM user_inventory WHERE owner_id = {global_uid} AND game_id = {gid};")
+                            insert_db(f"DELETE FROM user_inventory WHERE owner_id = {fid} AND game_id = {friends_gid};")
+                            insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({global_uid}, {friends_gid}, '{friends_game}');")
+                            insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({fid}, {gid}, '{game_options}');")
+                        except psycopg2.errors.UniqueViolation:
+                            st.error("Cannot complete trade as either you or the tradee would duplicate "
+                                     "a game you/they already own")
+                            issue_three = True
+                if issue is not True and issue_two is not True and issue_three is not True:
+                    st.success("Successfully traded selected game with friend!", icon="✅")
 
-                elif action == "Rate":
-                    try:
-                        insert_db(f"INSERT INTO rate (score, rating_user, rated_game) VALUES ({int(score)}, {global_uid}, {gid});")
-                        st.success("Successfully left rating for selected game!", icon="✅")
-                    except psycopg2.errors.UniqueViolation:
-                        st.warning("You have already rated this game")
+    st.markdown(f"<h3 style='text-align: center;'>Sell</h3>", unsafe_allow_html=True)
+    with st.form("sell"):
+        game_options = st.selectbox("Select one of your games", get_inventory(global_uid))
+        friends_options = st.selectbox("Chose a friend to sell to", get_friends(username)["username"].tolist())
+        fid = int(query_db(f"SELECT uid FROM users WHERE username = '{friends_options}';")["uid"].tolist()[0])
+        submit = st.form_submit_button("Sell")
+        if submit:
+            is_game = True
+            try:
+                gid = int(query_db(f"SELECT gid FROM games WHERE name = '{game_options}';")["gid"].tolist()[0])
+            except IndexError: 
+                is_game = False
+                st.warning("You have no games to sell")
+            if is_game is not False:
+                try:
+                    insert_db(f"DELETE FROM user_inventory WHERE owner_id = {global_uid} AND game_name = '{game_options}';")
+                    insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({fid}, {gid}, '{game_options}');")
+                    st.success("Successfully sold selected game!", icon="✅")
+                except psycopg2.errors.UniqueViolation:
+                    st.error("Game could not be sold to friend because they already own a copy")
 
-                elif action == "Sell":
-                    try:
-                        insert_db(f"DELETE FROM user_inventory WHERE owner_id = {global_uid} AND game_name = '{game_options}';")
-                        insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({fid}, {gid}, '{game_options}');")
-                        st.success("Successfully sold selected game!", icon="✅")
-                    except psycopg2.errors.UniqueViolation:
-                        st.error("Game could not be sold to friend because they already own a copy")
+    st.markdown(f"<h3 style='text-align: center;'>Rate</h3>", unsafe_allow_html=True)
+    with st.form("rate"):
+        game_options = st.selectbox("Select one of your games", get_inventory(global_uid))
+        score = st.slider("Rating score", min_value=1, max_value=5, value=1)
+        submit = st.form_submit_button("Rate")
+        if submit:
+            is_game = True
+            try:
+                gid = int(query_db(f"SELECT gid FROM games WHERE name = '{game_options}';")["gid"].tolist()[0])
+            except IndexError: 
+                is_game = False
+                st.warning("You have no games to rate")
+            if is_game is not False:
+                try:
+                    insert_db(f"INSERT INTO rate (score, rating_user, rated_game) VALUES ({int(score)}, {global_uid}, {gid});")
+                    st.success("Successfully left rating for selected game!", icon="✅")
+                except psycopg2.errors.UniqueViolation:
+                    st.warning("You have already rated this game")
 
 
 # Marketplace, List of Websites

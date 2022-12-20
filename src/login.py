@@ -12,7 +12,6 @@ from streamlit.components.v1 import html
 
 
 # Connect to db (from demo.py)
-@st.cache
 def get_config(filename="database.ini", section="postgresql"):
     parser = ConfigParser()
     parser.read(filename)
@@ -20,7 +19,6 @@ def get_config(filename="database.ini", section="postgresql"):
 
 
 # Query db (from demo.py)
-@st.cache
 def query_db(sql: str):
     db_info = get_config()
     conn = psycopg2.connect(**db_info)
@@ -36,7 +34,6 @@ def query_db(sql: str):
 
 
 # Insert into db
-@st.cache
 def insert_db(sql: str):
     db_info = get_config()
     conn = psycopg2.connect(**db_info)

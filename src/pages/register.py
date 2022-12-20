@@ -10,7 +10,6 @@ from configparser import ConfigParser
 
 
 # Connect to db (from demo.py)
-@st.cache
 def get_config(filename="database.ini", section="postgresql"):
 	parser = ConfigParser()
 	parser.read(filename)
@@ -18,7 +17,6 @@ def get_config(filename="database.ini", section="postgresql"):
 
 
 # Query db (from demo.py)
-@st.cache
 def query_db(sql: str):
 	db_info = get_config()
 	conn = psycopg2.connect(**db_info)
@@ -34,7 +32,6 @@ def query_db(sql: str):
 
 
 # Insert into db
-@st.cache
 def insert_db(sql: str):
 	db_info = get_config()
 	conn = psycopg2.connect(**db_info)
@@ -46,8 +43,8 @@ def insert_db(sql: str):
 
 
 # Create page elements
-st.set_page_config(page_title="Register", page_icon="../assets/favicon.ico", initial_sidebar_state="collapsed")
-logo = Image.open('../assets/SteamDB.png')
+st.set_page_config(page_title="Register", page_icon="assets/favicon.ico", initial_sidebar_state="collapsed")
+logo = Image.open('assets/SteamDB.png')
 col1, col2, col3 = st.columns([1, 3, 1])
 with col2:
 	st.image(logo)
