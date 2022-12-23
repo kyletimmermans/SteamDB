@@ -52,6 +52,17 @@ def insert_db(sql: str):
     conn.close()
 
 
+# Reminder, we need 'parent' here as 'html()' is an iframe and we want the parent document elements
+def click_button(btn_type):
+    time.sleep(0.5)
+    if btn_type == "friends_list":
+        html("""<script type="text/javascript">let e = parent.document.evaluate("//button[contains(.,'Refresh Friends List')]", 
+            parent.document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; e.click();</script>""")
+    elif btn_type == "inventory":
+        html("""<script type="text/javascript">let e = parent.document.evaluate("//button[contains(.,'Refresh Inventory')]", 
+            parent.document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; e.click();</script>""")
+
+
 # For changing pages, no built-in option in Streamlit
 # https://github.com/streamlit/streamlit/issues/4832#issuecomment-1201938174
 # Modified for urls opening in new tab
@@ -60,6 +71,32 @@ def nav_page_external(page_name, timeout_secs=0):
         <script type="text/javascript">
             function attempt_nav_page(page_name, start_time, timeout_secs) {
                 window.open(page_name, "_blank");
+            }
+            window.addEventListener("load", function() {
+                attempt_nav_page("%s", new Date(), %d);
+            });
+        </script>
+    """ % (page_name, timeout_secs)
+    html(nav_script)
+
+
+def nav_page(page_name, timeout_secs=0):
+    nav_script = """
+        <script type="text/javascript">
+            function attempt_nav_page(page_name, start_time, timeout_secs) {
+                var links = window.parent.document.getElementsByTagName("a");
+                for (var i = 0; i < links.length; i++) {
+                    if (links[i].href.toLowerCase().endsWith("/" + page_name.toLowerCase())) {
+                        links[i].click();
+                        return;
+                    }
+                }
+                var elasped = new Date() - start_time;
+                if (elasped < timeout_secs * 1000) {
+                    setTimeout(attempt_nav_page, 100, page_name, start_time, timeout_secs);
+                } else {
+                    alert("Unable to navigate to page '" + page_name + "' after " + timeout_secs + " second(s).");
+                }
             }
             window.addEventListener("load", function() {
                 attempt_nav_page("%s", new Date(), %d);
@@ -137,15 +174,8 @@ def get_friends(usr):
 global_uid = int(query_db(f"SELECT uid FROM users WHERE username = '{username}';")["uid"].tolist()[0])
 logo = Image.open('assets/SteamDB.png')
 col4, col5, col6 = st.columns(3, gap='large')
-# Refresh Button, Friends List, Send Friend Request
+# Refresh Button, Friends List, Send Friend Request, Remove Friend
 with col4:
-    st.markdown(f"<h3 style='text-align: left;'>Refresh Page</h3>", unsafe_allow_html=True)
-    with st.form("refresh_page"):
-        refresh = st.form_submit_button("Refresh Page!", type="primary", help="Use this button to reflect new queries! "
-                                                                              "Not your browser's refresh button.")
-        if refresh:
-            pass
-
     st.markdown(f"<h3 style='text-align: left;'>Friends List</h3>", unsafe_allow_html=True)
     with st.form("friends_list"):
 
@@ -170,6 +200,7 @@ with col4:
 
 
     # Don't show ourselves and don't show people we've already friended
+    st.markdown(f"<h3 style='text-align: left;'>Add Friends</h3>", unsafe_allow_html=True)
     with st.form("add_friends"):
         possible_friends = []
         try:
@@ -211,7 +242,6 @@ with col4:
         except:
             pass
 
-        st.markdown(f"<h3 style='text-align: left;'>Add Friends</h3>", unsafe_allow_html=True)
         option = st.selectbox("--Find friends--", tuple(possible_friends), label_visibility="collapsed")
         submitted = st.form_submit_button("Send Friend Request")
         if submitted:
@@ -224,8 +254,18 @@ with col4:
                       f"VALUES ('{uid_sender}', '{uid_receiver}', '{username}', '{option}');")
             st.success(f"{option} added as a friend!", icon="🎉")
 
+    st.write("")
 
-# Logo, Welcome, Inventory
+    st.markdown(f"<h3 style='text-align: left;'>Remove Friends</h3>", unsafe_allow_html=True)
+    with st.form("Remove Friends"):
+        option = st.selectbox("--Remove friends--", tuple(possible_friends), label_visibility="collapsed")
+        submitted = st.form_submit_button("Remove Friend")
+        if submitted:
+            pass
+
+
+
+# Logo, Welcome, Inventory, Trade, Rate, Sell
 with col5:
     st.image(logo)
     st.markdown(f"<h1 style='text-align: center;'>Hello, {username}!</h1>", unsafe_allow_html=True)
@@ -318,7 +358,7 @@ with col5:
                     st.warning("You have already rated this game")
 
 
-# Marketplace, List of Websites
+# Marketplace, List of Websites, Logout
 with col6:
     st.markdown(f"<h3 style='text-align: right;'>Marketplace</h3>", unsafe_allow_html=True)
     with st.form("marketplace"):
@@ -334,37 +374,31 @@ with col6:
             else:   
                 final_data.append(f"{game_scores[i][0]} - {int(game_scores[i][1])*u'⭐'}")
         game_list = st.multiselect("Choose games to buy", options=final_data)
-
+        print(game_list)
         purchase = st.form_submit_button("Purchase")
         if purchase:
-            issue = 0
-            for i in game_list:
-                gname = str(i).split(' -', 1)[0]
-                gid = int(query_db(f"SELECT gid FROM games WHERE name = '{gname}';")["gid"].tolist()[0])
-                try:
-                    insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({global_uid}, {gid}, '{gname}');")
-                except psycopg2.errors.UniqueViolation:
-                    issue = 1
-                    continue
-            if issue == 1:
-                st.warning("You already own 1 or more of the selected game(s)")
+            if game_list:
+                issue = 0
+                for i in game_list:
+                    gname = str(i).split(' -', 1)[0]
+                    gid = int(query_db(f"SELECT gid FROM games WHERE name = '{gname}';")["gid"].tolist()[0])
+                    try:
+                        insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({global_uid}, {gid}, '{gname}');")
+                    except psycopg2.errors.UniqueViolation:
+                        issue = 1
+                        continue
+                if issue == 1:
+                    st.warning("You already own 1 or more of the selected game(s)")
+                else:
+                    click_button("inventory")
+                    st.success("Game(s) added to your inventory!", icon="✅")
             else:
-                st.success("Game(s) added to your inventory!", icon="✅")
+                st.warning("You must select a game to purchase")
 
     st.write("")
 
     st.markdown(f"<h3 style='text-align: right;'>Game Dev Websites</h3>", unsafe_allow_html=True)
-
-    hide_iframe = """
-            <style>
-            iframe {display:none;}
-            iframe {visibility: hidden;}
-            </style>
-    """
-    st.markdown(hide_iframe, unsafe_allow_html=True)
-
     with st.form("game_dev_websites"):
-
         website_info = query_db("SELECT S1.name, S1.est, S2.mode, S1.url FROM "
                                 "(SELECT GC.cid, GC.name, date_part('year', GC.year_established) AS est, W.url "
                                 "FROM websites W "
@@ -391,6 +425,33 @@ with col6:
             nav_page_external(f"{str(url)}")
 
 
+    st.markdown(f"<h3 style='text-align: right;'>Logout</h3>", unsafe_allow_html=True)
+    logout = st.button("Logout", type="primary")
+    if logout:
+        try:
+            os.remove("temp.txt")
+        except:
+            st.error("An error occurred while trying to logout. Going back to main page regardless.")
+            time.sleep(2)
+            nav_page("login")
+        st.success("Logging out...")
+        time.sleep(2)
+        nav_page("")
+        
+
+# Put logout button on right side
+rightside_button = """
+<script type="text/javascript">
+    function fix_logout_button() {
+        let e = parent.document.evaluate("//button[contains(.,'Logout')]", 
+        parent.document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        e.style.float = 'right';
+    }
+    document.addEventListener("DOMContentLoaded", fix_logout_button);
+</script>
+"""
+html(rightside_button)
+
 # Remove extra Streamlit Elements
 hide_streamlit_style = """
             <style>
@@ -399,3 +460,12 @@ hide_streamlit_style = """
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+# Prevent iframe from breaking forms
+hide_iframe = """
+        <style>
+        iframe {display:none;}
+        iframe {visibility: hidden;}
+        </style>
+"""
+st.markdown(hide_iframe, unsafe_allow_html=True)
