@@ -11,37 +11,40 @@ from configparser import ConfigParser
 from streamlit.components.v1 import html
 
 
-# Connect to db (from demo.py)
+# set_page_config must be at top of code or Streamlit gets mad
+st.set_page_config(page_title="Login", page_icon="assets/favicon.ico", initial_sidebar_state="collapsed")
+
+
+# Remove extra Streamlit Elements
+hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+
+# Connect to DB
 def get_config(filename="database.ini", section="postgresql"):
     parser = ConfigParser()
     parser.read(filename)
     return {k: v for k, v in parser.items(section)}
 
 
-# Query db (from demo.py)
-def query_db(sql: str):
+# Query DB
+def query_db(sql: str, data: tuple):
     db_info = get_config()
     conn = psycopg2.connect(**db_info)
     cur = conn.cursor()
-    cur.execute(sql)
-    data = cur.fetchall()
+    cur.execute(sql, data)
+    results = cur.fetchall()
     column_names = [desc[0] for desc in cur.description]
     conn.commit()
     cur.close()
     conn.close()
-    df = pd.DataFrame(data=data, columns=column_names)
+    df = pd.DataFrame(data=results, columns=column_names)
     return df
-
-
-# Insert into db
-def insert_db(sql: str):
-    db_info = get_config()
-    conn = psycopg2.connect(**db_info)
-    cur = conn.cursor()
-    cur.execute(sql)
-    conn.commit()
-    cur.close()
-    conn.close()
 
 
 # For changing pages, no built-in option in Streamlit
@@ -73,7 +76,6 @@ def nav_page(page_name, timeout_secs=0):
 
 
 # Create page elements
-st.set_page_config(page_title="Login", page_icon="assets/favicon.ico", initial_sidebar_state="collapsed")
 logo = Image.open('assets/SteamDB.png')
 temp = st.empty()
 col1, col2, col3 = temp.columns([1, 3, 1])
@@ -86,7 +88,7 @@ with col2:
     if st.button("Login"):
         if any(not c.isalnum() for c in username) == False:
             hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
-            check = query_db(f"SELECT username, password FROM users WHERE username = '{username}' AND password = '{hashed_password}';")
+            check = query_db("SELECT username, password FROM users WHERE username = %s AND password = %s;", (username, hashed_password))
             if check['username'].any():
                 st.success("Success! Logging you in now...", icon="✅")
                 time.sleep(2)
@@ -97,16 +99,6 @@ with col2:
             st.warning("Usernames cannot contain any special characters or whitespace")
 
     st.markdown("""<a href="/register" target = "_self">Create an account</a>""", unsafe_allow_html=True)
-
-
-# Remove extra Streamlit Elements
-hide_streamlit_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 
 # On correct login
