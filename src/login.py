@@ -84,14 +84,17 @@ with col2:
     username = st.text_input("Username", help="Hint: user, user")
     password = st.text_input("Password", type="password")
     if st.button("Login"):
-        hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
-        check = query_db(f"SELECT username, password FROM users WHERE username = '{username}' AND password = '{hashed_password}';")
-        if check['username'].any():
-            st.success("Success! Logging you in now...", icon="✅")
-            time.sleep(2)
-            page_empty = 1
+        if any(not c.isalnum() for c in username) == False:
+            hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
+            check = query_db(f"SELECT username, password FROM users WHERE username = '{username}' AND password = '{hashed_password}';")
+            if check['username'].any():
+                st.success("Success! Logging you in now...", icon="✅")
+                time.sleep(2)
+                page_empty = 1
+            else:
+                st.error("Username not found or incorrect password. Please try again.")
         else:
-            st.error("Username not found or incorrect password. Please try again.")
+            st.warning("Usernames cannot contain any special characters or whitespace")
 
     st.markdown("""<a href="/register" target = "_self">Create an account</a>""", unsafe_allow_html=True)
 

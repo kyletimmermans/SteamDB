@@ -1,6 +1,7 @@
 # pages/register.py
 
-import os 
+import os
+import re
 import psycopg2
 import hashlib
 import pandas as pd
@@ -55,22 +56,29 @@ with col2:
 
 	# On Register Account button clicked
 	if st.button("Register Account"):
-		check = query_db("SELECT uid, username, email FROM users;")
-		# Get next uid in line
-		try:
-			uid_check = int(check["uid"].tolist()[-1]) + 1
-		except IndexError:
-			uid_check = 0
-		# Ensure no email or username duplicates
-		if (email not in check["email"].tolist()) and (username not in check["username"].tolist()):
-			hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
-			# Add account to users table
-			insert_db(	f"INSERT INTO users (uid, username, email, password) "
-						f"VALUES ('{int(uid_check)}', '{str(username)}', '{str(email)}', '{hashed_password}');")
-			st.success("Acccount successfully created", icon="✅")
-			st.balloons()
+		email_check = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+		if re.fullmatch(email_check, email):
+			if any(not c.isalnum() for c in username) == False:
+				check = query_db("SELECT uid, username, email FROM users;")
+				# Get next uid in line
+				try:
+					uid_check = int(check["uid"].tolist()[-1]) + 1
+				except IndexError:
+					uid_check = 0
+				# Ensure no email or username duplicates
+				if (email not in check["email"].tolist()) and (username not in check["username"].tolist()):
+					hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
+					# Add account to users table
+					insert_db(	f"INSERT INTO users (uid, username, email, password) "
+								f"VALUES ('{int(uid_check)}', '{str(username)}', '{str(email)}', '{hashed_password}');")
+					st.success("Acccount successfully created", icon="✅")
+					st.balloons()
+				else:
+					st.error("Username or Email already used/taken. Please try again.")
+			else:
+				st.warning("Usernames cannot contain any special characters or whitespace")
 		else:
-			st.error("Username or Email already used/taken. Please try again.")
+			st.warning("Please use a proper email address")
 
 	st.markdown("""<a href="/login" target = "_self">Login</a>""", unsafe_allow_html=True)
 
