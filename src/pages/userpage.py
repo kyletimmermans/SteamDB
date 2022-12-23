@@ -4,7 +4,6 @@
 import os
 import time
 import psycopg2
-import datetime
 import pandas as pd
 import streamlit as st
 from PIL import Image
@@ -202,12 +201,13 @@ def get_friends(usr):
     return friends
 
 
-
+# More userpage setup
 global_uid = int(query_db(f"SELECT uid FROM users WHERE username = '{username}';")["uid"].tolist()[0])
-
 logo = Image.open('assets/SteamDB.png')
 col4, col5, col6 = st.columns(3, gap='large')
-# Refresh Button, Friends List, Send Friend Request, Remove Friend
+
+
+# Refresh Button, Friends List, Send Friend Request, Remove Friend, Game Dev Websites
 with col4:
     st.markdown(f"<h3 style='text-align: left;'>Friends List</h3>", unsafe_allow_html=True)
     with st.form("friends_list"):
@@ -218,9 +218,7 @@ with col4:
         if refresh:
             pass
 
-
     st.write("")
-
 
     # Don't show ourselves and don't show people we've already friended
     st.markdown(f"<h3 style='text-align: left;'>Add Friends</h3>", unsafe_allow_html=True)
@@ -290,11 +288,40 @@ with col4:
                       f"OR (sender_username = '{friend_option}' AND receiver_username = '{username}');")
             st.info("Friend removed")
             click_button("friends_list")
+
+    st.write("")
+
+    st.markdown(f"<h3 style='text-align: left;'>Game Dev Websites</h3>", unsafe_allow_html=True)
+    with st.form("game_dev_websites"):
+        website_info = query_db("SELECT S1.name, S1.est, S2.mode, S1.url FROM "
+                                "(SELECT GC.cid, GC.name, date_part('year', GC.year_established) AS est, W.url "
+                                "FROM websites W "
+                                "JOIN game_dev_companies GC ON "
+                                "W.wid = GC.wid "
+                                "JOIN games G ON "
+                                "G.game_dev_company = GC.cid) S1 "
+                                "JOIN "
+                                "(SELECT G.game_dev_company, MODE() WITHIN GROUP (ORDER BY G.genre) "
+                                "FROM games G "
+                                "JOIN game_dev_companies GC ON G.game_dev_company = GC.cid "
+                                "GROUP BY G.game_dev_company) S2 "
+                                "ON S1.cid = S2.game_dev_company "
+                                "ORDER BY S1.est DESC;")
+        website_options = st.radio("Chose a game dev company's website to visit", tuple(website_info["name"].tolist()))
+        submit = st.form_submit_button("Visit Website")
+        if submit:
+            url = 0
+            for i in website_info.values.tolist():
+                if i[0] == website_options:
+                    url = i[3]
+            st.success("Opening website in new tab!", icon="✅")
+            time.sleep(2)
+            nav_page_external(f"{str(url)}")
             
 
 
 
-# Logo, Welcome, Inventory, Trade, Rate, Sell
+# Logo, Welcome {username}, Inventory, Trade, Rate, Sell
 with col5:
     st.image(logo)
     st.markdown(f"<h1 style='text-align: center;'>Hello, {username}!</h1>", unsafe_allow_html=True)
@@ -392,7 +419,7 @@ with col5:
                     st.warning("You have already rated this game")
 
 
-# Marketplace, List of Websites, Logout
+# Marketplace, Transaction History, Logout
 with col6:
     st.markdown(f"<h3 style='text-align: right;'>Marketplace</h3>", unsafe_allow_html=True)
     with st.form("marketplace"):
@@ -417,9 +444,8 @@ with col6:
                     gname = str(i).split(' -', 1)[0]
                     gid = int(query_db(f"SELECT gid FROM games WHERE name = '{gname}';")["gid"].tolist()[0])
                     try:
-                        current_time = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
                         insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({global_uid}, {gid}, '{gname}');")
-                        insert_db(f"INSERT INTO buy (buyer_id, game_id, purchase_date) VALUES ({global_uid}, {gid}, '{current_time}');")
+                        insert_db(f"INSERT INTO buy (buyer_id, game_id, purchase_date) VALUES ({global_uid}, {gid}, NOW());")
                     except psycopg2.errors.UniqueViolation:
                         issue = 1
                         continue
@@ -434,18 +460,38 @@ with col6:
     st.write("")
 
     st.markdown(f"<h3 style='text-align: right;'>Transaction History</h3>", unsafe_allow_html=True)
+    # This is only the history of the trades and purchases that the current user initiated
     with st.form("history"):
         st.markdown(f"<h5 style='text-align: center;'>Purchases</h5>", unsafe_allow_html=True)
         purchases = pd.DataFrame(columns=["Game", "Purchase Date"])
-        st.table()
+        purchase_data = query_db(f"SELECT G.name, B.purchase_date FROM buy B "
+                                 f"JOIN games G ON G.gid = B.game_id "
+                                 f"WHERE buyer_id = {global_uid}")
+        for i in range(len(purchase_data)):
+            purchases.loc[i] = [str(purchase_data["name"].tolist()[i]), str(purchase_data["purchase_date"].tolist()[i])]
+        st.table(purchases)
 
         st.markdown(f"<h5 style='text-align: center;'>Trades</h5>", unsafe_allow_html=True)
         trades = pd.DataFrame(columns=["Traded With", "Game Traded Away", "Game Traded For"])
-        st.table()
+        trade_data = query_db(f"SELECT U.username, G.name, G2.name AS name_two FROM trade T "
+                              f"JOIN games G ON G.gid = T.game_one "
+                              f"JOIN games G2 ON G2.gid = T.game_two "
+                              f"JOIN users U ON U.uid = T.trader_two "
+                              f"WHERE T.trader_one = {global_uid};")
+        for i in range(len(trade_data)):
+            trades.loc[i] = [str(trade_data["username"].tolist()[i]), str(trade_data["name"].tolist()[i]), 
+                            str(trade_data["name_two"].tolist()[i])]
+        st.table(trades)
 
         st.markdown(f"<h5 style='text-align: center;'>Sales</h5>", unsafe_allow_html=True)
-        sales = pd.DataFrame(columns=["Game", "Buyer"])
-        st.table()
+        sales = pd.DataFrame(columns=["Buyer", "Game"])
+        sale_data = query_db(f"SELECT U.username, G.name FROM sell S "
+                             f"JOIN users U ON U.uid = S.buyer_id "
+                             f"JOIN games G ON G.gid = S.game_id "
+                             f"WHERE seller_id = {global_uid};")
+        for i in range(len(sale_data)):
+            sales.loc[i] = [str(sale_data["username"].tolist()[i]), str(sale_data["name"].tolist()[i])]
+        st.table(sales)
 
         action = st.radio("Chose action:", ("Refresh History", "Clear History"))
         submit = st.form_submit_button("Submit")
@@ -457,36 +503,9 @@ with col6:
                 insert_db(f"DELETE FROM trade WHERE trader_one = {global_uid};")
                 insert_db(f"DELETE FROM sell WHERE seller_id = {global_uid};")
                 st.info("Transaction history cleared")
+                click_button("inventory")
 
     st.write("")
-
-    st.markdown(f"<h3 style='text-align: right;'>Game Dev Websites</h3>", unsafe_allow_html=True)
-    with st.form("game_dev_websites"):
-        website_info = query_db("SELECT S1.name, S1.est, S2.mode, S1.url FROM "
-                                "(SELECT GC.cid, GC.name, date_part('year', GC.year_established) AS est, W.url "
-                                "FROM websites W "
-                                "JOIN game_dev_companies GC ON "
-                                "W.wid = GC.wid "
-                                "JOIN games G ON "
-                                "G.game_dev_company = GC.cid) S1 "
-                                "JOIN "
-                                "(SELECT G.game_dev_company, MODE() WITHIN GROUP (ORDER BY G.genre) "
-                                "FROM games G "
-                                "JOIN game_dev_companies GC ON G.game_dev_company = GC.cid "
-                                "GROUP BY G.game_dev_company) S2 "
-                                "ON S1.cid = S2.game_dev_company "
-                                "ORDER BY S1.est DESC;")
-        website_options = st.radio("Chose a game dev company's website to visit", tuple(website_info["name"].tolist()))
-        submit = st.form_submit_button("Visit Website")
-        if submit:
-            url = 0
-            for i in website_info.values.tolist():
-                if i[0] == website_options:
-                    url = i[3]
-            st.success("Opening website in new tab!", icon="✅")
-            time.sleep(2)
-            nav_page_external(f"{str(url)}")
-
 
     st.markdown(f"<h3 style='text-align: right;'>Logout</h3>", unsafe_allow_html=True)
     logout = st.button("Logout", type="primary")
