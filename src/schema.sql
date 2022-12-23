@@ -65,12 +65,14 @@ CREATE TABLE buy (
 );
 
 CREATE TABLE trade (
-	game_one INTEGER,
-	game_two INTEGER,
 	trader_one INTEGER,
 	trader_two INTEGER,
+	game_one INTEGER,
+	game_two INTEGER,
 	FOREIGN KEY (trader_one) REFERENCES users (uid),
 	FOREIGN KEY (trader_two) REFERENCES users (uid),
+	FOREIGN KEY (game_one) REFERENCES games (gid),
+	FOREIGN KEY (game_two) REFERENCES games (gid),
 	PRIMARY KEY(trader_one, trader_two, game_one, game_two)
 );
 
@@ -92,13 +94,4 @@ CREATE TABLE users_friend (
 	FOREIGN KEY (sender_uid) REFERENCES users (uid),
 	FOREIGN KEY (receiver_uid) REFERENCES users (uid),	
 	PRIMARY KEY(sender_uid, receiver_uid) 
-);
-
-CREATE TABLE user_inventory (
-	owner_id INTEGER,
-	game_id INTEGER,
-	game_name VARCHAR(32),
-	FOREIGN KEY (owner_id) REFERENCES users (uid),
-	FOREIGN KEY (game_id) REFERENCES games (gid),
-	PRIMARY KEY(owner_id, game_id)
 );
