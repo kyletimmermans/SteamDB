@@ -95,3 +95,12 @@ CREATE TABLE users_friend (
 	FOREIGN KEY (receiver_uid) REFERENCES users (uid),	
 	PRIMARY KEY(sender_uid, receiver_uid) 
 );
+
+CREATE TABLE user_inventory (
+	owner_id INTEGER,
+	game_id INTEGER,
+	game_name VARCHAR(32),
+	FOREIGN KEY (owner_id) REFERENCES users (uid),
+	FOREIGN KEY (game_id) REFERENCES games (gid),
+	PRIMARY KEY(owner_id, game_id)
+);
