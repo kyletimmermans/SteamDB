@@ -4,6 +4,7 @@
 import os
 import time
 import psycopg2
+import datetime
 import pandas as pd
 import streamlit as st
 from PIL import Image
@@ -16,7 +17,38 @@ from streamlit.components.v1 import html
 # unless they had access to the backend
 f = open("temp.txt", "r")
 username = f.read()
-st.set_page_config(page_title=f"Home | {username}", page_icon="assets/favicon.ico", initial_sidebar_state="collapsed", layout="wide")
+# set_page_config must be at top of page or Streamlit gets mad for having more than 1 page config
+st.set_page_config(page_title=f"Home | {username}", 
+                   page_icon="assets/favicon.ico", 
+                   initial_sidebar_state="collapsed", layout="wide")
+
+
+# Setup CSS styles #
+
+# Remove extra Streamlit Elements
+hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+# Prevent iframe from breaking forms
+hide_iframe = """
+        <style>
+        iframe {display:none;}
+        iframe {visibility: hidden;}
+        </style>
+"""
+st.markdown(hide_iframe, unsafe_allow_html=True)
+# Hide table index column
+hide_table_row_index = """
+        <style>
+        thead tr th:first-child {display:none}
+        tbody th {display:none}
+        </style>
+"""
+st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
 
 # Connect to db (from demo.py)
@@ -172,6 +204,7 @@ def get_friends(usr):
 
 
 global_uid = int(query_db(f"SELECT uid FROM users WHERE username = '{username}';")["uid"].tolist()[0])
+
 logo = Image.open('assets/SteamDB.png')
 col4, col5, col6 = st.columns(3, gap='large')
 # Refresh Button, Friends List, Send Friend Request, Remove Friend
@@ -181,16 +214,6 @@ with col4:
 
         final_data = set_friend_list_df(username)
         friends_table = st.table(final_data)
-
-        hide_table_row_index = """
-                    <style>
-                    thead tr th:first-child {display:none}
-                    tbody th {display:none}
-                    </style>
-                    """
-
-        st.markdown(hide_table_row_index, unsafe_allow_html=True)
-
         refresh = st.form_submit_button("Refresh Friends List")
         if refresh:
             pass
@@ -316,6 +339,7 @@ with col5:
                             insert_db(f"DELETE FROM user_inventory WHERE owner_id = {fid} AND game_id = {friends_gid};")
                             insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({global_uid}, {friends_gid}, '{friends_game}');")
                             insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({fid}, {gid}, '{game_options}');")
+                            insert_db(f"INSERT INTO trade (trader_one, trader_two, game_one, game_two) VALUES ({global_uid}, {fid}, {gid}, {friends_gid});")
                         except psycopg2.errors.UniqueViolation:
                             st.error("Cannot complete trade as either you or the tradee would duplicate "
                                      "a game you/they already own")
@@ -341,6 +365,7 @@ with col5:
                 try:
                     insert_db(f"DELETE FROM user_inventory WHERE owner_id = {global_uid} AND game_name = '{game_options}';")
                     insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({fid}, {gid}, '{game_options}');")
+                    insert_db(f"INSERT INTO sell (game_id, seller_id, buyer_id) VALUES ({gid}, {global_uid}, {fid});")
                     st.success("Successfully sold selected game!", icon="✅")
                     click_button("inventory")
                 except psycopg2.errors.UniqueViolation:
@@ -383,7 +408,6 @@ with col6:
             else:   
                 final_data.append(f"{game_scores[i][0]} - {int(game_scores[i][1])*u'⭐'}")
         game_list = st.multiselect("Choose games to buy", options=final_data)
-        print(game_list)
         purchase = st.form_submit_button("Purchase")
         show_success = 0
         if purchase:
@@ -393,7 +417,9 @@ with col6:
                     gname = str(i).split(' -', 1)[0]
                     gid = int(query_db(f"SELECT gid FROM games WHERE name = '{gname}';")["gid"].tolist()[0])
                     try:
+                        current_time = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
                         insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({global_uid}, {gid}, '{gname}');")
+                        insert_db(f"INSERT INTO buy (buyer_id, game_id, purchase_date) VALUES ({global_uid}, {gid}, '{current_time}');")
                     except psycopg2.errors.UniqueViolation:
                         issue = 1
                         continue
@@ -404,6 +430,33 @@ with col6:
                     click_button("inventory")
             else:
                 st.warning("You must select a game to purchase")
+
+    st.write("")
+
+    st.markdown(f"<h3 style='text-align: right;'>Transaction History</h3>", unsafe_allow_html=True)
+    with st.form("history"):
+        st.markdown(f"<h5 style='text-align: center;'>Purchases</h5>", unsafe_allow_html=True)
+        purchases = pd.DataFrame(columns=["Game", "Purchase Date"])
+        st.table()
+
+        st.markdown(f"<h5 style='text-align: center;'>Trades</h5>", unsafe_allow_html=True)
+        trades = pd.DataFrame(columns=["Traded With", "Game Traded Away", "Game Traded For"])
+        st.table()
+
+        st.markdown(f"<h5 style='text-align: center;'>Sales</h5>", unsafe_allow_html=True)
+        sales = pd.DataFrame(columns=["Game", "Buyer"])
+        st.table()
+
+        action = st.radio("Chose action:", ("Refresh History", "Clear History"))
+        submit = st.form_submit_button("Submit")
+        if submit:
+            if action == "Refresh History":
+                pass
+            elif action == "Clear History":
+                insert_db(f"DELETE FROM buy WHERE buyer_id = {global_uid};")
+                insert_db(f"DELETE FROM trade WHERE trader_one = {global_uid};")
+                insert_db(f"DELETE FROM sell WHERE seller_id = {global_uid};")
+                st.info("Transaction history cleared")
 
     st.write("")
 
@@ -447,7 +500,7 @@ with col6:
         st.success("Logging out...")
         time.sleep(2)
         nav_page("")
-        
+
 
 # Put logout button on right side
 rightside_button = """
@@ -461,21 +514,3 @@ rightside_button = """
 </script>
 """
 html(rightside_button)
-
-# Remove extra Streamlit Elements
-hide_streamlit_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-# Prevent iframe from breaking forms
-hide_iframe = """
-        <style>
-        iframe {display:none;}
-        iframe {visibility: hidden;}
-        </style>
-"""
-st.markdown(hide_iframe, unsafe_allow_html=True)
