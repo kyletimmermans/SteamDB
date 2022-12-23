@@ -7,4 +7,16 @@
 
 
 <p align="center"><img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/final_title.svg?raw=true" alt="SteamDB Logo"/></p>
-SteamDB is a platform for buying, trading, rating, and selling different video games. There is functionality for adding friends and keeping track of what games they have. Once friending another user, you can trade and sell games with / to them. The point of this project is to better understand SQL, specifically PostgreSQL.
+SteamDB is a platform for buying, trading, selling, and raring different video games. There is functionality for adding / removing friends and keeping track of what games they have. Once friending another user, you can trade and sell games with / to them, and keep track of the history of your transactions. The point of this project is to better understand SQL, specifically PostgreSQL.
+
+</br></br>
+
+## Installation / Setup
+1. cd into top level folder
+2. Run `pip install -r requirements.txt`
+3. cd into `src` folder
+4. Start PostgreSQL and run `psql -U <user> -c 'CREATE DATABASE steamdb;'`
+5. Run `psql -U <user> -d steamdb -f schema.sql`
+6. Optionally, fill the app w/ test data by running `psql -U <user> -d steamdb -f load.sql`
+7. Run `streamlit run login.py --server.headless=true`
+8. Open your browser and visit [http://localhost:8501/](http://localhost:8501/)
