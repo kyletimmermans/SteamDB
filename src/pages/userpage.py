@@ -54,7 +54,7 @@ def insert_db(sql: str):
 
 # Reminder, we need 'parent' here as 'html()' is an iframe and we want the parent document elements
 def click_button(btn_type):
-    time.sleep(0.5)
+    time.sleep(2)
     if btn_type == "friends_list":
         html("""<script type="text/javascript">let e = parent.document.evaluate("//button[contains(.,'Refresh Friends List')]", 
             parent.document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; e.click();</script>""")
@@ -253,15 +253,21 @@ with col4:
             insert_db(f"INSERT INTO users_friend (sender_uid, receiver_uid, sender_username, receiver_username) "
                       f"VALUES ('{uid_sender}', '{uid_receiver}', '{username}', '{option}');")
             st.success(f"{option} added as a friend!", icon="🎉")
+            click_button("friends_list")
 
     st.write("")
 
     st.markdown(f"<h3 style='text-align: left;'>Remove Friends</h3>", unsafe_allow_html=True)
     with st.form("Remove Friends"):
-        option = st.selectbox("--Remove friends--", tuple(possible_friends), label_visibility="collapsed")
+        friends = get_friends(username)["username"].tolist()
+        friend_option = st.selectbox("--Remove friends--", tuple(friends), label_visibility="collapsed")
         submitted = st.form_submit_button("Remove Friend")
         if submitted:
-            pass
+            insert_db(f"DELETE FROM users_friend WHERE (sender_username = '{username}' AND receiver_username = '{friend_option}') "
+                      f"OR (sender_username = '{friend_option}' AND receiver_username = '{username}');")
+            st.info("Friend removed")
+            click_button("friends_list")
+            
 
 
 
@@ -316,6 +322,7 @@ with col5:
                             issue_three = True
                 if issue is not True and issue_two is not True and issue_three is not True:
                     st.success("Successfully traded selected game with friend!", icon="✅")
+                    click_button("inventory")
 
     st.markdown(f"<h3 style='text-align: center;'>Sell</h3>", unsafe_allow_html=True)
     with st.form("sell"):
@@ -335,6 +342,7 @@ with col5:
                     insert_db(f"DELETE FROM user_inventory WHERE owner_id = {global_uid} AND game_name = '{game_options}';")
                     insert_db(f"INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES ({fid}, {gid}, '{game_options}');")
                     st.success("Successfully sold selected game!", icon="✅")
+                    click_button("inventory")
                 except psycopg2.errors.UniqueViolation:
                     st.error("Game could not be sold to friend because they already own a copy")
 
@@ -354,6 +362,7 @@ with col5:
                 try:
                     insert_db(f"INSERT INTO rate (score, rating_user, rated_game) VALUES ({int(score)}, {global_uid}, {gid});")
                     st.success("Successfully left rating for selected game!", icon="✅")
+                    click_button("inventory")
                 except psycopg2.errors.UniqueViolation:
                     st.warning("You have already rated this game")
 
@@ -376,6 +385,7 @@ with col6:
         game_list = st.multiselect("Choose games to buy", options=final_data)
         print(game_list)
         purchase = st.form_submit_button("Purchase")
+        show_success = 0
         if purchase:
             if game_list:
                 issue = 0
@@ -390,8 +400,8 @@ with col6:
                 if issue == 1:
                     st.warning("You already own 1 or more of the selected game(s)")
                 else:
-                    click_button("inventory")
                     st.success("Game(s) added to your inventory!", icon="✅")
+                    click_button("inventory")
             else:
                 st.warning("You must select a game to purchase")
 
@@ -433,7 +443,7 @@ with col6:
         except:
             st.error("An error occurred while trying to logout. Going back to main page regardless.")
             time.sleep(2)
-            nav_page("login")
+            nav_page("")
         st.success("Logging out...")
         time.sleep(2)
         nav_page("")
@@ -447,7 +457,7 @@ rightside_button = """
         parent.document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
         e.style.float = 'right';
     }
-    document.addEventListener("DOMContentLoaded", fix_logout_button);
+    window.addEventListener("load", fix_logout_button);
 </script>
 """
 html(rightside_button)
