@@ -59,6 +59,7 @@ CREATE TABLE rate (
 CREATE TABLE buy (
 	buyer_id INTEGER,
 	game_id INTEGER,
+	purchase_date DATE,
 	FOREIGN KEY (buyer_id) REFERENCES users (uid),
 	FOREIGN KEY (game_id) REFERENCES games (gid),
 	PRIMARY KEY(buyer_id, game_id)
