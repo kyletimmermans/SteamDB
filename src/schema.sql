@@ -78,13 +78,13 @@ CREATE TABLE trade (
 );
 
 CREATE TABLE sell (
-	game_id INTEGER,
 	seller_id INTEGER,
 	buyer_id INTEGER,
-	FOREIGN KEY (game_id) REFERENCES games (gid),
+	game_id INTEGER,
 	FOREIGN KEY (seller_id) REFERENCES users (uid),
 	FOREIGN KEY (buyer_id) REFERENCES users (uid),
-	PRIMARY KEY(game_id, seller_id, buyer_id)
+	FOREIGN KEY (game_id) REFERENCES games (gid),
+	PRIMARY KEY(seller_id, buyer_id, game_id)
 );
 
 CREATE TABLE users_friend (
