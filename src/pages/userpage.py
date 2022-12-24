@@ -146,7 +146,7 @@ def set_friend_list_df(usr):
                             "UNION "
                             "SELECT receiver_username FROM users_friend "
                             "WHERE sender_username = %s) "
-                            "ORDER BY username;", (username,))
+                            "ORDER BY username;", (usr, usr))
 
     friends_data = friends_data.values.tolist()
     final_data = pd.DataFrame(columns=["Friend", "Game(s) Owned"])
@@ -181,7 +181,7 @@ def get_inventory(global_id):
     user_inv = query_db("SELECT G.name, GC.name, G.genre FROM user_inventory UI "
                         "JOIN games G ON G.gid = UI.game_id "
                         "JOIN game_dev_companies GC ON GC.cid = G.game_dev_company "
-                        "WHERE UI.owner_id = %s;", (global_id))
+                        "WHERE UI.owner_id = %s;", (global_id,))
     user_inv = user_inv.values.tolist()
     final_data = pd.DataFrame(columns=["Game", "Publisher", "Genre"])
     for i in range(len(user_inv)):
@@ -197,7 +197,7 @@ def get_friends(usr):
                        "UNION "
                        "SELECT receiver_username FROM users_friend "
                        "WHERE sender_username = %s) "
-                       "ORDER BY username;", (username,))
+                       "ORDER BY username;", (usr, usr))
     return friends
 
 
@@ -241,7 +241,7 @@ with col4:
                                  "WHERE receiver_username = %s "
                                  "UNION "
                                  "SELECT receiver_username FROM users_friend "
-                                 "WHERE sender_username = %s);". (username,))
+                                 "WHERE sender_username = %s);", (username,))
 
             for i in range(len(get_users["sender_username"].tolist())):
                 possible_friends.append(str(get_users["sender_username"][i]) + " - " + str(get_users["total"][i]) + " friend(s)")
@@ -488,7 +488,7 @@ with col6:
         sale_data = query_db("SELECT U.username, G.name FROM sell S "
                              "JOIN users U ON U.uid = S.buyer_id "
                              "JOIN games G ON G.gid = S.game_id "
-                             "WHERE seller_id = %s;", (global_uid))
+                             "WHERE seller_id = %s;", (global_uid,))
         for i in range(len(sale_data)):
             sales.loc[i] = [str(sale_data["username"].tolist()[i]), str(sale_data["name"].tolist()[i])]
         st.table(sales)
