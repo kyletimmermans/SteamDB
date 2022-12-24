@@ -266,15 +266,18 @@ with col4:
         option = st.selectbox("--Find friends--", tuple(possible_friends), label_visibility="collapsed")
         submitted = st.form_submit_button("Send Friend Request")
         if submitted:
-            option = option.split(' ', 1)[0]
-            get_uids = query_db("SELECT U1.uid AS num1, U2.uid AS num2 "
-                                "FROM users U1, users U2 WHERE U1.username = %s "
-                                "AND U2.username = %s;", (username, option))
-            uid_sender, uid_receiver = get_uids["num1"].tolist()[0], get_uids["num2"].tolist()[0]
-            insert_db("INSERT INTO users_friend (sender_uid, receiver_uid, sender_username, receiver_username) "
-                      "VALUES (%s, %s, %s, %s);", (uid_sender, uid_receiver, username, option))
-            st.success(f"{option} added as a friend!", icon="🎉")
-            click_button("friends_list")
+            if option is not None:
+                option = option.split(' ', 1)[0]
+                get_uids = query_db("SELECT U1.uid AS num1, U2.uid AS num2 "
+                                    "FROM users U1, users U2 WHERE U1.username = %s "
+                                    "AND U2.username = %s;", (username, option))
+                uid_sender, uid_receiver = get_uids["num1"].tolist()[0], get_uids["num2"].tolist()[0]
+                insert_db("INSERT INTO users_friend (sender_uid, receiver_uid, sender_username, receiver_username) "
+                          "VALUES (%s, %s, %s, %s);", (uid_sender, uid_receiver, username, option))
+                st.success(f"{option} added as a friend!", icon="🎉")
+                click_button("friends_list")
+            else:
+                st.warning("There are no other users in the database to add as friends")
 
     st.write("")
 
@@ -284,10 +287,13 @@ with col4:
         friend_option = st.selectbox("--Remove friends--", tuple(friends), label_visibility="collapsed")
         submitted = st.form_submit_button("Remove Friend")
         if submitted:
-            insert_db("DELETE FROM users_friend WHERE (sender_username = %s AND receiver_username = %s) "
-                      "OR (sender_username = %s AND receiver_username = %s);", (username, friend_option, friend_option, username))
-            st.info("Friend removed")
-            click_button("friends_list")
+            if friend_option is not None:
+                insert_db("DELETE FROM users_friend WHERE (sender_username = %s AND receiver_username = %s) "
+                          "OR (sender_username = %s AND receiver_username = %s);", (username, friend_option, friend_option, username))
+                st.info("Friend removed")
+                click_button("friends_list")
+            else:
+                st.warning("No friends to remove from friends list")
 
     st.write("")
 
@@ -310,13 +316,16 @@ with col4:
         website_options = st.radio("Chose a game dev company's website to visit", tuple(website_info["name"].tolist()))
         submit = st.form_submit_button("Visit Website")
         if submit:
-            url = 0
-            for i in website_info.values.tolist():
-                if i[0] == website_options:
-                    url = i[3]
-            st.success("Opening website in new tab!", icon="✅")
-            time.sleep(2)
-            nav_page_external(f"{str(url)}")
+            if website_options is not None:
+                url = 0
+                for i in website_info.values.tolist():
+                    if i[0] == website_options:
+                        url = i[3]
+                st.success("Opening website in new tab!", icon="✅")
+                time.sleep(2)
+                nav_page_external(f"{str(url)}")
+            else:
+                st.warning("No game dev websites in database to open")
             
 
 
