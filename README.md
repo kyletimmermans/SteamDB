@@ -20,3 +20,19 @@ SteamDB is a platform for buying, trading, selling, and raring different video g
 6. Optionally, fill the app w/ test data by running `psql -U postgres -d steamdb -f load.sql`
 7. Run `streamlit run login.py --server.headless=true`
 8. Open your browser and visit [http://localhost:8501/](http://localhost:8501/)
+
+</br></br>
+
+## Screenshots
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/userpage_1.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/userpage_2.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/userpage_3.png?raw=true" alt="Login Page"/>
+</p>
