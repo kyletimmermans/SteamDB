@@ -26,69 +26,76 @@ SteamDB is a platform for buying, trading, selling, and raring different video g
 ## Screenshots
 
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/userpage_1.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/userpage_1.png?raw=true" alt="Userpage Top Section"/>
 </p>
 
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/userpage_2.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/userpage_2.png?raw=true" alt="Userpage Middle Section"/>
 </p>
 
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/userpage_3.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/userpage_3.png?raw=true" alt="Userpage Bottom Section"/>
 </p>
 
 <p align="center">
   <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/login_blank.png?raw=true" alt="Login Page"/>
 </p>
 
+#
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/login_failed.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/login_failed.png?raw=true" width=50% height=50% alt="Login Failed"/>
+</p>
+
+#
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_blank.png?raw=true" alt="Register Page"/>
 </p>
 
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_blank.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_balloons.png?raw=true" alt="Register Page Success"/>
 </p>
 
+#
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_balloons.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_special_chars.png?raw=true"  width=50% height=50% alt="Register Page Deals w Special Chars"/>
 </p>
 
+#
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_special_chars.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_failed.png?raw=true" width=50% height=50% alt="Register Failed"/>
 </p>
 
+#
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_failed.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/friend_added.png?raw=true" width=50% height=50% alt="Friend Added"/>
 </p>
 
+#
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/friend_added.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/removed_friend.png?raw=true" width=50% height=50% alt="Friend Removed"/>
 </p>
 
+#
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/removed_friend.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/failed_trade.png?raw=true" width=50% height=50% alt="Failed Trade"/>
 </p>
 
+#
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/failed_trade.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/sold_game.png?raw=true" width=50% height=50% alt="Sold Game"/>
 </p>
 
+#
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/sold_game.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/rated_game.png?raw=true" width=50% height=50% alt="Rated Fame"/>
 </p>
 
+#
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/rated_game.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/bought_game.png?raw=true" width=50% height=50% alt="Bought Game"/>
 </p>
 
+#
 <p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_failed.png?raw=true" alt="Login Page"/>
-</p>
-
-<p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/bought_game.png?raw=true" alt="Login Page"/>
-</p>
-
-<p align="center">
-  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_failed.png?raw=true" alt="Login Page"/>
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/marketplace_stars.png?raw=true" width=50% height=50% alt="Marketplace Star Ratings"/>
 </p>
