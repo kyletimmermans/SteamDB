@@ -241,7 +241,7 @@ with col4:
                                  "WHERE receiver_username = %s "
                                  "UNION "
                                  "SELECT receiver_username FROM users_friend "
-                                 "WHERE sender_username = %s);", (username,))
+                                 "WHERE sender_username = %s);", (username, username, username))
 
             for i in range(len(get_users["sender_username"].tolist())):
                 possible_friends.append(str(get_users["sender_username"][i]) + " - " + str(get_users["total"][i]) + " friend(s)")
@@ -268,7 +268,7 @@ with col4:
         if submitted:
             option = option.split(' ', 1)[0]
             get_uids = query_db("SELECT U1.uid AS num1, U2.uid AS num2 "
-                                "FROM users U1, users U2 WHERE U1.username = '%s' "
+                                "FROM users U1, users U2 WHERE U1.username = %s "
                                 "AND U2.username = %s;", (username, option))
             uid_sender, uid_receiver = get_uids["num1"].tolist()[0], get_uids["num2"].tolist()[0]
             insert_db("INSERT INTO users_friend (sender_uid, receiver_uid, sender_username, receiver_username) "
@@ -343,7 +343,7 @@ with col5:
         submit = st.form_submit_button("Trade")
         if submit:
             is_game = True
-            fid = int(query_db("SELECT uid FROM users WHERE username = %s;", (friends_option,))["uid"].tolist()[0])
+            fid = int(query_db("SELECT uid FROM users WHERE username = %s;", (friends_options,))["uid"].tolist()[0])
             try:
                 gid = int(query_db("SELECT gid FROM games WHERE name = %s;", (game_options,))["gid"].tolist()[0])
             except IndexError: 
