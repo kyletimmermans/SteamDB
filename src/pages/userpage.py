@@ -343,13 +343,18 @@ with col5:
         submit = st.form_submit_button("Trade")
         if submit:
             is_game = True
-            fid = int(query_db("SELECT uid FROM users WHERE username = %s;", (friends_options,))["uid"].tolist()[0])
+            is_friend = True
             try:
                 gid = int(query_db("SELECT gid FROM games WHERE name = %s;", (game_options,))["gid"].tolist()[0])
             except IndexError: 
                 is_game = False
                 st.warning("You have no games to trade")
-            if is_game is not False:
+            try:
+                fid = int(query_db("SELECT uid FROM users WHERE username = %s;", (friends_options,))["uid"].tolist()[0])
+            except IndexError:
+                is_friend = False
+                st.warning("You have no friends to trade with")
+            if is_game is not False and is_friend is not False:
                 issue, issue_two, issue_three = False, False, False
                 if friends_game == "":
                     st.warning("You must supply the game you would like to trade for")
@@ -379,16 +384,21 @@ with col5:
     with st.form("sell"):
         game_options = st.selectbox("Select one of your games", get_inventory(global_uid))
         friends_options = st.selectbox("Chose a friend to sell to", get_friends(username)["username"].tolist())
-        fid = int(query_db("SELECT uid FROM users WHERE username = %s;", (friends_options,))["uid"].tolist()[0])
         submit = st.form_submit_button("Sell")
         if submit:
             is_game = True
+            is_friend = True
             try:
                 gid = int(query_db("SELECT gid FROM games WHERE name = %s;", (game_options,))["gid"].tolist()[0])
             except IndexError: 
                 is_game = False
                 st.warning("You have no games to sell")
-            if is_game is not False:
+            try:
+                fid = int(query_db("SELECT uid FROM users WHERE username = %s;", (friends_options,))["uid"].tolist()[0])
+            except IndexError:
+                is_friend = False
+                st.warning("You have no friends to trade with")
+            if is_game is not False and is_friend is not False:
                 try:
                     insert_db("DELETE FROM user_inventory WHERE owner_id = %s AND game_name = %s;", (global_uid, game_options))
                     insert_db("INSERT INTO user_inventory (owner_id, game_id, game_name) VALUES (%s, %s, %s);", (fid, gid, game_options))
