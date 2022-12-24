@@ -16,7 +16,7 @@ SteamDB is a platform for buying, trading, selling, and raring different video g
 2. Run `pip install -r requirements.txt`
 3. cd into `src` folder
 4. Start PostgreSQL and run `psql -U postgres -c 'CREATE DATABASE steamdb;'`
-5. Run `psql -U <user> -d steamdb -f schema.sql`
+5. Run `psql -U postgres -d steamdb -f schema.sql`
 6. Optionally, fill the app w/ test data by running `psql -U postgres -d steamdb -f load.sql`
 7. Run `streamlit run login.py --server.headless=true`
 8. Open your browser and visit [http://localhost:8501/](http://localhost:8501/)
