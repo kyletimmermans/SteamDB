@@ -41,12 +41,10 @@ SteamDB is a platform for buying, trading, selling, and raring different video g
   <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/login_blank.png?raw=true" alt="Login Page"/>
 </p>
 
-#
 <p align="center">
   <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/login_failed.png?raw=true" width=50% height=50% alt="Login Failed"/>
 </p>
 
-#
 <p align="center">
   <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_blank.png?raw=true" alt="Register Page"/>
 </p>
