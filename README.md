@@ -7,7 +7,7 @@
 
 
 <p align="center"><img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/final_title.svg?raw=true" alt="SteamDB Logo"/></p>
-SteamDB is a platform for buying, trading, selling, and raring different video games. There is functionality for adding / removing friends and keeping track of what games they have. Once friending another user, you can trade and sell games with / to them, and keep track of the history of your transactions. The point of this project is to better understand SQL, specifically PostgreSQL.
+SteamDB is a platform for buying, trading, selling, and raring different video games. There is functionality for adding / removing friends and keeping track of what games they have. Once friending another user, you can trade and sell games with / to them, and keep track of the history of your transactions. The UI handles for a number of various user input errors and misuse cases. The point of this project is to better understand SQL, specifically PostgreSQL and SQL injection attacks.
 
 </br></br>
 
@@ -35,4 +35,60 @@ SteamDB is a platform for buying, trading, selling, and raring different video g
 
 <p align="center">
   <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/userpage_3.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/login_blank.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/login_failed.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_blank.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_balloons.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_special_chars.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_failed.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/friend_added.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/removed_friend.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/failed_trade.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/sold_game.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/rated_game.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_failed.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/bought_game.png?raw=true" alt="Login Page"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/screenshots/register_failed.png?raw=true" alt="Login Page"/>
 </p>
