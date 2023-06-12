@@ -7,7 +7,7 @@
 
 
 <p align="center"><img src="https://github.com/kyletimmermans/SteamDB/blob/main/media/final_title.svg?raw=true" alt="SteamDB Logo"/></p>
-SteamDB is a platform for buying, trading, selling, and raring different video games. There is functionality for adding / removing friends and keeping track of what games they have. Once friending another user, you can trade and sell games with / to them, and keep track of the history of your transactions. The UI handles for a number of various user input errors and misuse cases. The point of this project is to better understand SQL, specifically PostgreSQL and SQL injection attacks.
+SteamDB is a platform for buying, trading, selling, and rating different video games. There is functionality for adding / removing friends and keeping track of what games they have. Once friending another user, you can trade and sell games with / to them, and keep track of the history of your transactions. The UI handles for a number of various user input errors and misuse cases. The point of this project is to better understand SQL, specifically PostgreSQL and SQL injection attacks.
 
 </br></br>
 
